@@ -4,6 +4,13 @@ import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from scipy import sparse
 
+
+def getDataframeRatingsBase(file):
+	r_cols = ['user_id', 'course_id', 'rating']
+	ratings = pandas.read_csv(file, usecols=r_cols, encoding='utf8')[r_cols]
+	Y_data = ratings.values
+	return Y_data
+
 class CF(object):
 	"""
 	class Collaborative Filtering, hệ thống đề xuất dựa trên sự tương đồng
@@ -24,15 +31,10 @@ class CF(object):
 		self.dist_func = dist_func
 		self.Ybar_data = None
 		# số lượng user và item, +1 vì mảng bắt đầu từ 0
-		self.n_users = int(np.max(self.Y_data[:, 0])) + 1
-		self.n_items = int(np.max(self.Y_data[:, 1])) + 1
-  
-	def getDataframeRatingsBase(self, file):
-		r_cols = ['user', 'course_id', 'rating']
-		ratings = pandas.read_csv(file, usecols=r_cols, encoding='utf8')
-		Y_data = ratings.values
-		return Y_data
-
+		self.n_users = len(self.Y_data[:, 0])
+		self.n_items = len(self.Y_data[:, 1])
+		print(self.n_users)
+		
 	def normalize_matrix(self):
 		"""
 		Tính similarity giữa các items bằng cách tính trung bình cộng ratings giữa các items.
@@ -51,6 +53,7 @@ class CF(object):
 			if np.isnan(m):
 				m = 0  # để tránh mảng trống và nan value
 			self.mu[n] = m
+			
 			# chuẩn hóa
 			self.Ybar_data[ids, 2] = ratings - self.mu[n]
 		self.Ybar = sparse.coo_matrix((self.Ybar_data[:, 2],
@@ -112,7 +115,10 @@ class CF(object):
 		return sorted_items
 
 	def runTest(self):
-		print(self.recommend_top())
-  
-cf = CF()
-		
+		print(self.recommend_top(3, 3))
+
+data_matrix = getDataframeRatingsBase('../data/users.reviews.csv')
+cf = CF(data_matrix, 100)
+cf.normalize_matrix()
+cf.similarity()
+cf.runTest()

@@ -59,7 +59,23 @@ def normalizeReview():
 	
 	df.to_csv('../data/users.reviews.csv')
 	print('[x] Done')
+
+def dropRandomReviews():
+	review_df = pd.read_csv('../data/users.reviews.csv')
+	# calculate number of rows to drop
+	n_rows_to_drop = int(0.4 * len(review_df))
+
+	# randomly select rows to drop
+	rows_to_drop = np.random.choice(review_df.index, size=n_rows_to_drop, replace=False)
+
+	# drop selected rows
+	review_df.drop(['Unnamed: 0'], axis=1, inplace=True)
+	review_df = review_df.drop(rows_to_drop)
+ 
+	review_df.to_csv('../data/users.reviews.csv')
+	print('[x] Done')
 	
 # mergeReviews()
 # fakeUsersData()
 # normalizeReview()
+# dropRandomReviews()

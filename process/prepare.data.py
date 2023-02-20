@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import sys, os, json
+import sys, os, json, ast
 
 # Add the parent directory to the system path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -47,15 +47,19 @@ def fakeUsersData():
 def normalizeReview():
 	review_df = pd.read_csv('../data/users.reviews.csv')
 	user_df = pd.read_csv('../data/users.csv')
-	for i, review in review_df.iterrows():
-		for i, user in user_df.iterrows():
-			if (user['_old'] == review['user']):
-				review['user_id'] = user['id']
-				break
+
+	review_df['user'] = review_df['user'].str.replace("'", "\"")
+
+	df = pd.merge(review_df, user_df[['id', '_old']], left_on='user', right_on='_old')\
+		.rename(columns={'id_y': 'user_id'})\
+	.rename(columns={'id_x': 'id'})
 	
-	review_df.to_csv('../data/users.reviews.csv')
+	df.drop('_old', axis=1, inplace=True)
+	df.drop(['Unnamed: 0'], axis=1, inplace=True)
+	
+	df.to_csv('../data/users.reviews.csv')
 	print('[x] Done')
 	
 # mergeReviews()
 # fakeUsersData()
-normalizeReview()
+# normalizeReview()

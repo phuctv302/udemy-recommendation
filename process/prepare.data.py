@@ -77,5 +77,5 @@ def dropRandomReviews():
 	
 # mergeReviews()
 # fakeUsersData()
-# normalizeReview()
+normalizeReview()
 # dropRandomReviews()

@@ -1,34 +1,30 @@
 from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
+import numpy as np
 
-# create user-item matrix
+users = pd.read_csv('../data/users.csv')
+courses = pd.read_csv('../data/courses.csv')
 user_reviews = pd.read_csv('../data/users.reviews.csv')
-user_item_matrix = user_reviews.pivot_table(index='user_id', columns='course_id', values='rating')
 
-# calculate cosine similarity matrix
-user_similarity_matrix = cosine_similarity(user_item_matrix)
+df = pd.merge(user_reviews, courses, left_on='course_id', right_on='id').rename(columns={'id_x': 'id'})
+df.drop(['id_y'], axis=1, inplace=True)
+df = pd.merge(df, users, left_on='user_id', right_on='id').rename(columns={'id_x': 'id'})
+df.drop(['id_y'], axis=1, inplace=True)
 
-# get similar users for a given user
-user_id = 1
-similar_user_ids = user_similarity_matrix[user_id].argsort()[::-1][1:]
+df.dropna(inplace=True)
 
-# generate recommendations based on similar users' ratings
-recommendations = []
-for course_id in user_item_matrix.columns:
-    if pd.isnull(user_item_matrix.loc[user_id, course_id]):
-        rating_sum = 0
-        weight_sum = 0
-        for similar_user_id in similar_user_ids:
-            if not pd.isnull(user_item_matrix.loc[similar_user_id, course_id]):
-                similarity_score = user_similarity_matrix[user_id, similar_user_id]
-                rating_sum += similarity_score * user_item_matrix.loc[similar_user_id, course_id]
-                weight_sum += similarity_score
-        if weight_sum > 0:
-            recommendation_score = rating_sum / weight_sum
-            recommendations.append((course_id, recommendation_score))
+ratings_matrix = df.pivot_table(index='user_id', columns='course_id', values='rating', aggfunc='mean')
 
-# sort recommendations by score and return top N
-recommendations.sort(key=lambda x: x[1], reverse=True)
-top_n_recommendations = recommendations[:10]
+user_similarity = cosine_similarity(ratings_matrix)
 
-print(top_n_recommendations)
+# get the top 10 similar users to a user
+user_id = 336
+similar_users = user_similarity[user_id].argsort()[:-11:-1]
+
+# get the courses that these users have rated highly
+similar_users_ratings = ratings_matrix.iloc[similar_users].mean()
+
+# recommend the top 10 courses
+recommended_courses = similar_users_ratings.sort_values(ascending=False)[:10]
+
+print(recommended_courses)

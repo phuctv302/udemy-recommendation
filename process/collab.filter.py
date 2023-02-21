@@ -8,6 +8,7 @@ from scipy import sparse
 def getDataframeRatingsBase(file):
 	r_cols = ['user_id', 'course_id', 'rating']
 	ratings = pandas.read_csv(file, usecols=r_cols, encoding='utf8')[r_cols]
+	ratings.info()
 	Y_data = ratings.values
 	return Y_data
 
@@ -118,7 +119,7 @@ class CF(object):
 		print(self.recommend_top(3, 3))
 
 data_matrix = getDataframeRatingsBase('../data/users.reviews.csv')
-cf = CF(data_matrix, 100)
+cf = CF(data_matrix, 336)
 cf.normalize_matrix()
 cf.similarity()
 cf.runTest()
